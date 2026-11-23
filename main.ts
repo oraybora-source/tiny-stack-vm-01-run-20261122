@@ -1,7 +1,7 @@
 // Tiny stack VM, ISA v1 — a faithful interpreter, written from ISA.md.
 // One run answers every instance: /input/<id>/{program,input}.bin
 // -> /output/<id>/{stdout.bin,exit.txt}. Pure: no clock, no network.
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 const E = new TextEncoder();
 function run(p, q) {
@@ -116,7 +116,11 @@ const O = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 for (const id of readdirSync(I).sort()) {
   const r = run(new Uint8Array(readFileSync(join(I, id, 'program.bin'))),
     new Uint8Array(readFileSync(join(I, id, 'input.bin'))));
-  mkdirSync(join(O, id), { recursive: true });
-  writeFileSync(join(O, id, 'stdout.bin'), r.o);
-  writeFileSync(join(O, id, 'exit.txt'), r.e + '\n');
+  const d = join(O, id), a = join(d, 'stdout.bin'), b = join(d, 'exit.txt');
+  mkdirSync(d, { recursive: true });
+  chmodSync(d, 0o755);
+  writeFileSync(a, r.o);
+  writeFileSync(b, r.e + '\n');
+  chmodSync(a, 0o644);
+  chmodSync(b, 0o644);
 }
